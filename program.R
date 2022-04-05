@@ -53,23 +53,18 @@ Grouped_el_2 <- group_by(Grouped_el_2, name1)%>% summarise(sum(Sum))
 colnames(Grouped_el_2) <- c("Name", "Sum")
 Grouped_el_2 <- Grouped_el_2[order(Grouped_el_2$Sum, decreasing = TRUE),]
 
-
-################################################################################
-################################################################################
-################################################################################
-################################################################################
-
 Grouped <- group_by(who_clogged, Name1) %>% summarise(sum(Clogged))
 colnames(Grouped) <- c("Name", "Sum")
 #Order by the sum
 Grouped <- Grouped[order(Grouped$Sum, decreasing = TRUE),]
 
-#The elements of the electrical power grid that clogged the most of the time are:
-#print(Grouped[Grouped$Sum > 100,])         
+################################################################################
+################################################################################
+################################################################################
+################################################################################
 
-#The elements of the electrical power grid that clogged the rarest are:
-#print(Grouped[Grouped$Sum < 15,]) 
+data <- Joined[c(1,2,12,13,14,15,16,17,18,19,20,22)]
+data$Clogged <- as.numeric(data$Clogged)
 
-#The other elements:
-#print(Grouped[Grouped$Sum <= 100 & Grouped$Sum >= 15,]) 
-         
+
+lm(Clogged ~ AT_NP + BE_NP, data)
