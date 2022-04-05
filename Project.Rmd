@@ -1,0 +1,52 @@
+---
+title: "Project"
+author: "Jan Sifrer"
+date: "5. 4. 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r, include=FALSE, echo=FALSE}
+source("program.R", encoding="UTF-8")
+```
+
+# Which elements most often clog the power grid? 
+```{r}
+#First, let's see who clogged more than 10 times:
+Grouped_el[Grouped_el$Sum > 10,]
+```
+**INTERPRETATIONS:**
+
+* ALBE_export was clogged 51 times in this period
+* The German power grid was clogged for 35 times by [DE-DE] Hoheneck - Pulverdingen weiss [DIR] [DE]
+
+```{r}
+#Second, let's see who clogged more than 2 times, but less than 10 times:
+Grouped_el[Grouped_el$Sum > 2 & Grouped_el$Sum <= 10,]
+```
+
+```{r}
+#And now let see who clogged less than 2 times:
+Grouped_el[Grouped_el$Sum <= 2,]
+```
+
+**Conclusion:**
+
+In the first table, we can see, which elements clogged the power grid more than 10 times. We can also see, that all these elements are part of German or Belgium power grid.
+
+In the second table, we can see, which elements clogged the power grid more than 2 times, but less than 10 times. We can see that the elements are parts of many different power grids. They are part of Belgium, France, Netherlands, German, and Austria power grids.
+
+And in the last table, we can see, which elements clogged the power grid at least once, but less than 2 times. But for better transparency let's merge this table by a fact in which country they are. (By the first part of the Name.)
+```{r}
+Grouped_el_2
+```
+
+We can see, that although the element's in the Austrian power grid are not in the first table and they are barely in the second (so none of the elements didn't clog the grid more than 10 times, and just one element is in the second table - Westtirol Transformer WTRHU41 [DIR], which clogged the grid 3 times), the Austrian power grid is the most clogged in this observed period.
+
+That can be confirmed by the table below, where we can see, how many times was some power grid clogged. (Let's just see those, who were clogged more than 20 times.)
+```{r}
+Grouped[Grouped$Sum > 20,]
+```
+
