@@ -9,7 +9,7 @@ X1_ptdf_ram <- read_csv("1_ptdf_ram.csv")
 X1_ptdf_ram[c('Year', 'Time')] <- str_split_fixed(X1_ptdf_ram$TimeLT, ' ', 2)
 X1_ptdf_ram$Year <- as.Date(X1_ptdf_ram$Year)
 X1_ptdf_ram <- X1_ptdf_ram[X1_ptdf_ram$Year >= as.Date("2021-09-20") & X1_ptdf_ram$Year <= as.Date("2021-10-31") ,]
-X1_ptdf_ram <- X1_ptdf_ram[c(-12,-13)]
+#X1_ptdf_ram <- X1_ptdf_ram[c(-12,-13)]
 
 #Change zones for Germany
 
@@ -40,7 +40,7 @@ Joined$c <- c
 clogged <- Joined$c >= Joined$RAM
 Joined$Clogged <- clogged
 
-who_clogged <- filter(Joined, Clogged==TRUE) %>% select(1,2,3,12,13,22)
+who_clogged <- filter(Joined, Clogged==TRUE) %>% select(1,2,3,14,15,24)
 
 Grouped_el <- group_by(who_clogged, Name)%>% summarise(sum(Clogged))
 colnames(Grouped_el) <- c("Name", "Sum")
@@ -63,8 +63,49 @@ Grouped <- Grouped[order(Grouped$Sum, decreasing = TRUE),]
 ################################################################################
 ################################################################################
 
-data <- Joined[c(1,2,12,13,14,15,16,17,18,19,20,22)]
-data$Clogged <- as.numeric(data$Clogged)
+#data <- Joined[c(1,2,11,12,13,14,15,16,17,18,19,20,22)]
+Joined$Clogged <- as.numeric(Joined$Clogged)
 
+#Split the data by days:
 
-lm(Clogged ~ AT_NP + BE_NP, data)
+Day <- weekdays(Joined$Year)
+Joined$Day <- Day
+Joined$Day <- str_replace_all(Joined$Day,"ponedeljek", "1")
+Joined$Day <- str_replace_all(Joined$Day,"torek", "2")
+Joined$Day <- str_replace_all(Joined$Day,"sreda", "3")
+Joined$Day <- str_replace_all(Joined$Day,"četrtek", "4")
+Joined$Day <- str_replace_all(Joined$Day,"petek", "5")
+Joined$Day <- str_replace_all(Joined$Day,"sobota", "6")
+Joined$Day <- str_replace_all(Joined$Day,"nedelja", "7")
+Joined$Day <- as.numeric(Joined$Day)
+
+find_koef_at_time <- function(Joined,time,day){
+    #First find all power grids:
+    Grids <- unique(Joined$Name1)
+    Time <- unique(Joined$Time)
+    PTDF <- c('FREE', 'AT', 'BE', 'DE', 'FR', 'NL', 'ALBE', 'ALDE', 'RAM')
+    
+    #Prepare a table for koeficients:
+    koef <- matrix(nrow=(length(Grids)),ncol=9)
+    rownames(koef) <- c(Grids)
+    colnames(koef) <- PTDF
+    
+    for (i in 1:length(Grids)){
+      print(i)
+      testna <- Joined[Joined$Name1 == Grids[i],]
+      testna <- testna[testna$Time == time,]
+      testna <- testna[testna$Day == day,]
+      test <- lm(RAM-c ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM, testna)
+      #print(summary(test))
+      koef[grids[i],] <- test$coefficients
+      print(koef)
+    }
+    
+    return(koef)
+}
+
+#testna <- Joined[Joined$Name1 == Grids[18],]
+#testna <- testna[testna$Time == "06:00:00",]
+#testna <- testna[testna$day == 1,]
+#test <- lm(RAM-c ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM, testna)
+#summary(test)
