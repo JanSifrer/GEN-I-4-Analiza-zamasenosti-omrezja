@@ -85,25 +85,25 @@ calculate_coefficients <- function(Joined, time_start, time_end, day_start, day_
   Grids <- unique(my.data.model$Name1)
   #Grids <- c("[AT-AT]")
   Time <- unique(my.data.model$Time)
-  PTDF <- c("FREE_koef", "AT", "BE", "DE", "FR", "NL", "ALBE", "ALDE","R")
+  PTDF <- c("FREE_koef", "AT", "BE", "DE", "FR", "NL", "ALBE", "ALDE","RAM","R")
   
   #Prepare a table for koeficients:
   koef <- matrix(nrow=(length(Grids)),ncol=(length(PTDF)))
   rownames(koef) <- c(Grids)
   colnames(koef) <- PTDF
   
-  i =2
+  i =3
   for (i in 1:length(Grids)){
     #print(i)
+    i = 1
     testna <- my.data.model[my.data.model$Name1 == Grids[i],]
-    testna <- Joined[Joined$Time == time_start,]
     testna <- testna[testna$Time >= time_start,]
     testna <- testna[testna$Time <= time_end,]
     testna <- testna[testna$Day >= day_start,]
     testna <- testna[testna$Day <= day_end,]
     testna$what <- testna$RAM - testna$c
     if (nrow(testna)>10){
-      test <- lm(what ~ AT + BE + DE + FR + NL + ALBE + ALDE, testna)
+      test <- lm(what ~ AT+ BE + DE + FR + NL + ALBE + ALDE + RAM, testna)
      # print(summary(test)$r.squared)
       koef[Grids[i],"FREE_koef"]<- summary(test)$coefficient[,1]["(Intercept)"]
       koef[Grids[i],"AT"] <- summary(test)$coefficient[,1]["AT"]
@@ -113,47 +113,105 @@ calculate_coefficients <- function(Joined, time_start, time_end, day_start, day_
       koef[Grids[i],"NL"] <- summary(test)$coefficient[,1]["NL"]
       koef[Grids[i],"ALBE"] <- summary(test)$coefficient[,1]["ALBE"]
       koef[Grids[i],"ALDE"] <- summary(test)$coefficient[,1]["ALDE"]
+      koef[Grids[i],"RAM"] <- summary(test)$coefficient[,1]["RAM"]
       koef[Grids[i],"R"] <- summary(test)$r.squared
       
     }
-    if(nrow(testna)<=10){
-      koef[Grids[i],] <- c(0,0,0,0,0,0,0,0,0)
-      }
+  #  if(nrow(testna)<=10){
+   #   koef[Grids[i],] <- c(0,0,0,0,0,0,0,0,0,0)
+    #  }
     #print(koef)
   }
   koef[is.na(koef)] <- 0
-  return(koef)
+  #return(koef)
+  return(testna)
 }
 
-time_start = "00:00:00"
-time_end = "00:00:00"
+time_start = "17:00:00"
+time_end = "17:00:00"
 day_start = 1
-day_end = 1
-koef <- calculate_coefficients(Joined,"00:00:00","17:00:00",1,5)
+day_end = 7
+testna <- Joined[Joined$Time >= time_start,]
+testna <- testna[testna$Time <= time_end,]
+testna <- testna[testna$Day >= day_start,]
+testna <- testna[testna$Day <= day_end,]
+#testna <- testna[testna$Name1 == "[BE-BE]",]
+testna$what <- testna$RAM - testna$c
+testna <- testna[testna$what < 200,]
+koef <- testna
+#koef <- calculate_coefficients(Joined,time_start,time_end,day_start,day_end)
+test <- lm(c ~ exp(AT) + BE + DE + FR + NL + ALBE + ALDE-1, koef)
+test1 <- lm(c ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM-1, koef)
+#test2 <- lm(congested ~ AT + BE + DE + FR + NL + ALBE + ALDE, koef)
+#test3 <- lm(congested ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM, koef)
+#test4 <- lm(what ~ AT + BE + DE + FR + NL + ALBE + ALDE-1, koef)
+test5 <- lm(what ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM -1, koef)
 
-prediction_calculate <- function(Grid,koef,PTDF,RAM){
-  c <- koef[Grid,1] + koef[Grid,2]*PTDF["AT"] + koef[Grid,3]*PTDF["BE"] +
-    koef[Grid,4]*PTDF["DE"] + koef[Grid,5]*PTDF["FR"] + koef[Grid,6]*PTDF["NL"] + 
-    koef[Grid,7]*PTDF["ALBE"]  + koef[Grid,8]*PTDF["ALDE"]
-  print(RAM-c)
-  return(RAM-c <= 0.5)
-}
+summary(test)$adj.r.squared
+summary(test1)$adj.r.squared
+#summary(test2)$adj.r.squared
+#summary(test3)$adj.r.squared
+#summary(test4)$adj.r.squared
+summary(test5)$adj.r.squared
 
-PTDF_testni_con <- data.frame("AT"=0.15915, "BE"=0, "DE"=0.15915, "FR"=0.97386, "NL"=0, "ALBE"=0.03069, "ALDE"=0)
-RAM_testni_con <- 2952
-Grid_con <- "[DE-AT]"
-koef_con <- calculate_coefficients(Joined,"17:00:00","17:00:00",1,1)
+#plot(density(koef$what))
 
-prediction_calculate(Grid_con,koef_con,PTDF_testni_con,RAM_testni_con)
+PTDF <- data.frame("AT"=0.02458, "BE"=0.13275, "DE"=-0.01193, "FR"=0.20635, "NL"=0.02558, "ALBE"=0.10677, "ALDE"=-0.06474, "RAM" =1075)
+RAM <- 1075
+#predict.lm(test,PTDF,interval = c("confidence"))
+predict.lm(test1,PTDF,interval = c("prediction"))
+#predict.lm(test4,PTDF,interval = c("prediction"))
+predict.lm(test5,PTDF,interval = c("prediction"))
+#predict.lm(test5,PTDF,interval = c("confidence"))
+
+PTDF <- data.frame("AT"=0.15915, "BE"=0, "DE"=0.15915, "FR"=0.97386, "NL"=0, "ALBE"=0.03069, "ALDE"=0, "RAM" =2952)
+predict.lm(test1,PTDF,interval = c("prediction"))
+#predict.lm(test4,PTDF,interval = c("prediction"))
+predict.lm(test5,PTDF,interval = c("prediction"))
+#This one should be congested
 
 
-PTDF_testni_notcon <- data.frame("AT"=0.26781, "BE"=0.47176, "DE"=0.60565, "FR"=0.47176, "NL"=0, "ALBE"=0.34109, "ALDE"=0)
-RAM_testni_notcon <- 3106
-Grid_notcon <- "[DE-NL]"
-koef_notcon <- calculate_coefficients(Joined,"00:00:00","00:00:00",1,1)
+PTDF <- data.frame("AT"=0.01837, "BE"=0.11815, "DE"=-0.01796, "FR"=0.18027, "NL"=0.02695, "ALBE"=0.09507, "ALDE"=-0.06513, "RAM"=791)
+#RAM <- 791
+predict.lm(test,PTDF,interval = c("prediction"))
+predict.lm(test1,PTDF,interval = c("prediction"))
+#predict.lm(test4,PTDF,interval = c("prediction"))
+predict.lm(test5,PTDF,interval = c("prediction"))
 
-prediction_calculate(Grid_notcon,koef_notcon,PTDF_testni_notcon,RAM_testni_notcon)
+#This one should be congested
+
+PTDF <- data.frame("AT"=0.02152, "BE"=0.13414, "DE"=-0.00874, "FR"=0.21006, "NL"=0.03323, "ALBE"=0.09382, "ALDE"=-0.05750, "RAM"=807)
+#RAM <- 807
+predict.lm(test,PTDF,interval = c("prediction"))
+predict.lm(test1,PTDF,interval = c("prediction"))
+#predict.lm(test4,PTDF,interval = c("prediction"))
+predict.lm(test5,PTDF,interval = c("prediction"))
+
+#This one should not be congested
 
 
+PTDF <- data.frame("AT"=0.15915, "BE"=0, "DE"=0.15915, "FR"=0.97386, "NL"=0, "ALBE"=0.03069, "ALDE"=0, "RAM"=2952)
+RAM <- 2952
+#Grid_con <- "[DE-AT]"
+predict.lm(test,PTDF,interval = c("prediction"))
+predict.lm(test1,PTDF,interval = c("prediction"))
+#predict.lm(test4,PTDF,interval = c("prediction"))
+predict.lm(test5,PTDF,interval = c("prediction"))
+
+#This one should not be congested:
+PTDF <- data.frame("AT"=0.27184, "BE"=0.41495, "DE"=-0.80132, "FR"=-0.20641, "NL"=0, "ALBE"=-0.41102, "ALDE"=0, "RAM"=7982)
+RAM <- 7982
+predict.lm(test,PTDF,interval = c("prediction"))
+predict.lm(test1,PTDF,interval = c("prediction"))
+#predict.lm(test4,PTDF,interval = c("prediction"))
+predict.lm(test5,PTDF,interval = c("prediction"))
+
+#PTDF_testni_notcon <- data.frame("AT"=0.26781, "BE"=0.47176, "DE"=0.60565, "FR"=0.47176, "NL"=0, "ALBE"=0.34109, "ALDE"=0)
+#RAM_testni_notcon <- 3106
+#Grid_notcon <- "[DE-NL]"
+#koef_notcon <- calculate_coefficients(Joined,"00:00:00","00:00:00",1,1)
+#
+#
+#
 
 #
