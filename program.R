@@ -90,7 +90,7 @@ testna <- testna[testna$Day >= day_start,]
 testna <- testna[testna$Day <= day_end,]
 #testna <- testna[testna$Name1 == "[BE-BE]",]
 testna$what <- testna$RAM - testna$c
-#testna <- testna[testna$what < 700,]
+testna <- testna[testna$what < 700,]
 #koef <- testna[testna$RAM == 2952,]
 koef <- testna
 #koef <- calculate_coefficients(Joined,time_start,time_end,day_start,day_end)
@@ -112,9 +112,10 @@ koef[koef$Name2 == "",]$Name2 = koef[koef$Name2 == "",]$Name1
 hh <- lmer(c ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM + (1|Name1/Day) + (1|Name1/Time), data = koef)
 hh1 <- lmer(c ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM + (1|Day) + (1|Time) + (1|Name1), data = koef)
 hh2 <- lmer(c ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM + (1|Name2/Day) + (1|Name2/Time), data = koef)
+hh3 <- lmer(c ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM + (1|Day) + (1|Time) + (1|Name2), data = koef)
 
 
-#performance::check_predictions(hh2) #good
+#hh2per <- performance::check_predictions(hh2) #good
 #performance::check_predictions(hh1) #good
 #performance::check_predictions(hh)  #also good, but no so good as hh2
 #
@@ -147,7 +148,6 @@ predict(hh2, PTDF)
 
 predict.lm(test2,PTDF,interval = c("prediction"))
 
-
 #true value is: -0.27015
 #c = 1075.2701
 PTDF <- data.frame("Day" = 2,"Name2"="Ensdorf - Vigy 2S [OPP] [DE]", "Name1" = "[DE-FR]", "Time" = "02:00:00","AT"=0.02458, "BE"=0.13275, "DE"=-0.01193, "FR"=0.20635, "NL"=0.02558, "ALBE"=0.10677, "ALDE"=-0.06474, "RAM" =1075)
@@ -171,22 +171,27 @@ predict(hh2,PTDF)
 predict.lm(test2,PTDF,interval = c("prediction"))
 
 #true value is: 3.76918
-PTDF <- data.frame("Day" = 7, "Name1" = "[DE-DE]", "Time" = "11:00:00","AT"=-0.41615, "BE"=0, "DE"=0.79506, "FR"=0, "NL"=0, "ALBE"=0.44125, "ALDE"=0, "RAM"=7982)
+#c = 7978.231
+PTDF <- data.frame("Day" = 7, "Name2"="Buers Transformer 37 [DIR]" ,"Name1" = "[DE-DE]", "Time" = "11:00:00","AT"=-0.41615, "BE"=0, "DE"=0.79506, "FR"=0, "NL"=0, "ALBE"=0.44125, "ALDE"=0, "RAM"=7982)
 #day <- 7
 #time <- 11:00:00
 #name <- [DE-DE]
 predict(hh, PTDF)
 predict(hh1, PTDF)
+predict(hh2, PTDF)
+predict.lm(test2,PTDF,interval = c("prediction"))
 
 
 #true value is: 353.46941
-PTDF <- data.frame("Day" = 4, "Name1" = "[DE-NL]", "Time" = "22:00:00","AT"=-0.31925, "BE"=0.0645, "DE"=0.90467, "FR"=0.0645, "NL"=0, "ALBE"=-0.26706, "ALDE"=0, "RAM"=7982)
+#c = 7628.531
+PTDF <- data.frame("Day" = 4,"Name2"="Diele - Meeden 380 Black [DIR] [DE]", "Name1" = "[DE-NL]", "Time" = "22:00:00","AT"=-0.31925, "BE"=0.0645, "DE"=0.90467, "FR"=0.0645, "NL"=0, "ALBE"=-0.26706, "ALDE"=0, "RAM"=7982)
 #day <- 4
 #time <- 22:00:00
 #name <- [DE-NL]
 predict(hh, PTDF)
 predict(hh1, PTDF)
-
+predict(hh2, PTDF)
+predict.lm(test2,PTDF,interval = c("prediction"))
 
 #ranef(hh1)
 #ranef(hh1)$'Time:Day'["00:00:00:1",]
