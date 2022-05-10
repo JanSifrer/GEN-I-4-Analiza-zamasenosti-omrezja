@@ -175,16 +175,22 @@ pre code {
 <h1>Which elements most often clog the power grid?</h1>
 <pre class="r"><code>#First, let&#39;s see who clogged more than 10 times:
 Grouped_el[Grouped_el$Sum &gt; 10,]</code></pre>
-<pre><code>## # A tibble: 7 x 2
-##   Name                                                               Sum
-##   &lt;chr&gt;                                                            &lt;int&gt;
-## 1 ALBE_export                                                         51
-## 2 ALDE_import                                                         51
-## 3 [DE-DE] Hoheneck - Pulverdingen weiss [DIR] [DE]                    35
-## 4 ALBE_import                                                         25
-## 5 ALDE_export                                                         25
-## 6 [DE-DE] Y - Oberzier (- Dahlem - Niederstedem) Selhausen W [OPP]    15
-## 7 [BE-BE] PST_ZANDV_1 [N - S]                                         11</code></pre>
+<pre><code>## # A tibble: 13 x 2
+##    `Name of element`                                          Sum
+##    &lt;chr&gt;                                                    &lt;int&gt;
+##  1 Pleinting - St. Peter 258 [DIR] [AT]                       281
+##  2 Westtirol Transformer WTRHU41 [DIR]                        136
+##  3 Diele - Meeden 380 Black [DIR] [DE]                        133
+##  4 Hoheneck - Pulverdingen weiss [DIR] [DE]                    51
+##  5 Diemen - Lelystad 380 Zwart [OPP]                           38
+##  6 Altheim - Sittling 219 [OPP]                                36
+##  7 PST_ZANDV_2 [N - S]                                         36
+##  8 Buers Transformer 37 [DIR]                                  35
+##  9 Daxlanden - Weingarten gelb [OPP] [DE]                      20
+## 10 PST_ZANDV_1 [N - S]                                         16
+## 11 Y - Oberzier (- Dahlem - Niederstedem) Selhausen W [OPP]    15
+## 12 Y - Paffendorf (- Oberzier - Sechtem) Sechtem N [OPP]       15
+## 13 Y - Oberzier (- Paffendorf - Sechtem) Sechtem N [DIR]       11</code></pre>
 <p><strong>INTERPRETATIONS:</strong></p>
 <ul>
 <li>ALBE_export was clogged 51 times in this period</li>
@@ -192,67 +198,82 @@ Grouped_el[Grouped_el$Sum &gt; 10,]</code></pre>
 </ul>
 <pre class="r"><code>#Second, let&#39;s see who clogged more than 2 times, but less than 10 times:
 Grouped_el[Grouped_el$Sum &gt; 2 &amp; Grouped_el$Sum &lt;= 10,]</code></pre>
-<pre><code>## # A tibble: 10 x 2
-##    Name                                                            Sum
-##    &lt;chr&gt;                                                         &lt;int&gt;
-##  1 [BE-FR] Avelgem - Avelin 380.80 [DIR] [FR] - 20&#39;                  7
-##  2 [NL-BE] Rilland - Zandvliet 380 Grey/29 [DIR] [NL]                7
-##  3 [BE-BE] PST_VANYK_1 [S - N]                                       6
-##  4 [DE-DE] Altheim - Sittling 219 [OPP]                              5
-##  5 [BE-BE] PST_ZANDV_2 [N - S]                                       4
-##  6 [DE-FR] Ensdorf - Vigy 2S [OPP] [DE]                              4
-##  7 [AT-AT] Westtirol Transformer WTRHU41 [DIR]                       3
-##  8 [BE-FR] Achene - Lonny 380.19 [DIR] [BE]                          3
-##  9 [BE-FR] Avelgem - Avelin 380.80 [DIR] [BE]                        3
-## 10 [DE-NL] Diele - Meeden 380 Black [DIR] [DE]_LTA_corner#33_#13     3</code></pre>
+<pre><code>## # A tibble: 18 x 2
+##    `Name of element`                                          Sum
+##    &lt;chr&gt;                                                    &lt;int&gt;
+##  1 Y - Oberzier (- Paffendorf - Sechtem) Sechtem S [DIR]       10
+##  2 Paffendorf - Rommerskirchen Paffendorf N [OPP]               8
+##  3 Avelgem - Avelin 380.80 [DIR] [FR] - 20&#39;                     7
+##  4 Avelgem - Avelin 380.80 [OPP] [BE]                           7
+##  5 Diele - Meeden 380 Black [DIR] [NL]                          7
+##  6 PST_VANYK_1 [S - N]                                          7
+##  7 Rilland - Zandvliet 380 Grey/29 [DIR] [NL]                   7
+##  8 Ensdorf - Vigy 2S [OPP] [DE]                                 6
+##  9 Y - St. Peter (- Altheim - Simbach) 233/230 [DIR] [DE]       5
+## 10 Achene - Lonny 380.19 [DIR] [BE]                             4
+## 11 Altheim - Sittling 220 [OPP]                                 4
+## 12 Buerstadt - Lambsheim Buerstadt W [DIR]                      4
+## 13 Paffendorf - Rommerskirchen Paffendorf S [OPP]               4
+## 14 Y - Buerstadt (- Bischofsheim - Pfungstadt) Ried W [DIR]     4
+## 15 Avelgem - Avelin 380.80 [DIR] [BE]                           3
+## 16 Conneforde - Diele Rot [DIR]                                 3
+## 17 Conneforde - Diele Weiss [DIR]                               3
+## 18 Tauern PST TAPST [OPP]                                       3</code></pre>
 <pre class="r"><code>#And now let see who clogged less than 2 times:
 Grouped_el[Grouped_el$Sum &lt;= 2,]</code></pre>
-<pre><code>## # A tibble: 414 x 2
-##    Name                                                              Sum
-##    &lt;chr&gt;                                                           &lt;int&gt;
-##  1 [BE-BE] Achene - Gramme 380.10 [OPP]                                2
-##  2 [DE-AT] Pleinting - St. Peter 258 [DIR] [AT]                        2
-##  3 [DE-AT] Pleinting - St. Peter 258 [DIR] [AT]_LTA_corner#01_#129     2
-##  4 [DE-AT] Pleinting - St. Peter 258 [DIR] [AT]_LTA_corner#01_#19      2
-##  5 [DE-AT] Pleinting - St. Peter 258 [DIR] [AT]_LTA_corner#02_#7       2
-##  6 [DE-AT] Pleinting - St. Peter 258 [DIR] [AT]_LTA_corner#04_#123     2
-##  7 [DE-AT] Pleinting - St. Peter 258 [DIR] [AT]_LTA_corner#36_#11      2
-##  8 [DE-AT] Pleinting - St. Peter 258 [DIR] [AT]_LTA_corner#36_#22      2
-##  9 [DE-AT] Pleinting - St. Peter 258 [DIR] [AT]_LTA_corner#36_#9       2
-## 10 [DE-DE] Buerstadt - Lambsheim Buerstadt W [DIR]                     2
-## # ... with 404 more rows</code></pre>
+<pre><code>## # A tibble: 11 x 2
+##    `Name of element`                                          Sum
+##    &lt;chr&gt;                                                    &lt;int&gt;
+##  1 Achene - Gramme 380.10 [OPP]                                 2
+##  2 Eemshaven - Meeden 380 Wit [DIR]                             2
+##  3 Rommerskirchen - Sechtem Ville W [DIR]                       2
+##  4 Westtirol Transformer WTRHU41 [OPP]                          2
+##  5 Achene - Lonny 380.19 [DIR] [FR] - 1&#39;                        1
+##  6 Diele - Meeden 380 Black [OPP] [DE]                          1
+##  7 Ens - Zwolle 380 Zwart [OPP]                                 1
+##  8 Faux Fresnay - Mery sur Seine 1 [DIR] - 20&#39;                  1
+##  9 Maasbracht - Van Eyck 380 White/28 [OPP] [NL]                1
+## 10 Strass - Thaur 273B [OPP]                                    1
+## 11 Y - Pulverdingen (- Engstlatt - Oberjettingen) rot [OPP]     1</code></pre>
 <p><strong>Conclusion:</strong></p>
 <p>In the first table, we can see, which elements clogged the power grid more than 10 times. We can also see, that all these elements are part of German or Belgium power grid.</p>
 <p>In the second table, we can see, which elements clogged the power grid more than 2 times, but less than 10 times. We can see that the elements are parts of many different power grids. They are part of Belgium, France, Netherlands, German, and Austria power grids.</p>
 <p>And in the last table, we can see, which elements clogged the power grid at least once, but less than 2 times. But for better transparency let’s merge this table by a fact in which country they are. (By the first part of the Name.)</p>
 <pre class="r"><code>Grouped_el_2</code></pre>
-<pre><code>## # A tibble: 9 x 2
-##   Name      Sum
-##   &lt;chr&gt;   &lt;int&gt;
-## 1 [AT-AT]   126
-## 2 [DE-AT]   120
-## 3 [DE-NL]   105
-## 4 [DE-DE]    40
-## 5 [BE-BE]    26
-## 6 [NL-NL]    11
-## 7 [BE-FR]     3
-## 8 [FR-FR]     1
-## 9 [NL-BE]     1</code></pre>
+<pre><code>## # A tibble: 11 x 2
+##    `Name of element`                                          Sum
+##    &lt;chr&gt;                                                    &lt;int&gt;
+##  1 Achene - Gramme 380.10 [OPP]                                 2
+##  2 Eemshaven - Meeden 380 Wit [DIR]                             2
+##  3 Rommerskirchen - Sechtem Ville W [DIR]                       2
+##  4 Westtirol Transformer WTRHU41 [OPP]                          2
+##  5 Achene - Lonny 380.19 [DIR] [FR] - 1&#39;                        1
+##  6 Diele - Meeden 380 Black [OPP] [DE]                          1
+##  7 Ens - Zwolle 380 Zwart [OPP]                                 1
+##  8 Faux Fresnay - Mery sur Seine 1 [DIR] - 20&#39;                  1
+##  9 Maasbracht - Van Eyck 380 White/28 [OPP] [NL]                1
+## 10 Strass - Thaur 273B [OPP]                                    1
+## 11 Y - Pulverdingen (- Engstlatt - Oberjettingen) rot [OPP]     1</code></pre>
 <p>We can see, that although the element’s in the Austrian power grid are not in the first table and they are barely in the second (so none of the elements didn’t clog the grid more than 10 times, and just one element is in the second table - Westtirol Transformer WTRHU41 [DIR], which clogged the grid 3 times), the Austrian power grid is the most clogged in this observed period.</p>
 <p>That can be confirmed by the table below, where we can see, how many times was some power grid clogged. (Let’s just see those, who were clogged more than 20 times.)</p>
 <pre class="r"><code>Grouped[Grouped$Sum &gt; 20,]</code></pre>
-<pre><code>## # A tibble: 9 x 2
-##   Name          Sum
-##   &lt;chr&gt;       &lt;int&gt;
-## 1 [AT-AT]       129
-## 2 [DE-AT]       120
-## 3 [DE-NL]       108
-## 4 [DE-DE]        95
-## 5 ALBE_export    51
-## 6 ALDE_import    51
-## 7 [BE-BE]        47
-## 8 ALBE_import    25
-## 9 ALDE_export    25</code></pre>
+<pre><code>## # A tibble: 12 x 3
+## # Groups:   Name of grid [10]
+##    `Name of grid` `Name of element`                            Sum
+##    &lt;chr&gt;          &lt;chr&gt;                                      &lt;int&gt;
+##  1 [DE-AT]        &quot;Pleinting - St. Peter 258 [DIR] [AT]&quot;       281
+##  2 [AT-AT]        &quot;Westtirol Transformer WTRHU41 [DIR]&quot;        136
+##  3 [DE-NL]        &quot;Diele - Meeden 380 Black [DIR] [DE]&quot;        133
+##  4 [DE-DE]        &quot;Hoheneck - Pulverdingen weiss [DIR] [DE]&quot;    51
+##  5 ALBE_export    &quot;&quot;                                            51
+##  6 ALDE_import    &quot;&quot;                                            51
+##  7 [NL-NL]        &quot;Diemen - Lelystad 380 Zwart [OPP]&quot;           38
+##  8 [BE-BE]        &quot;PST_ZANDV_2 [N - S]&quot;                         36
+##  9 [DE-DE]        &quot;Altheim - Sittling 219 [OPP]&quot;                36
+## 10 [DE-DE]        &quot;Buers Transformer 37 [DIR]&quot;                  35
+## 11 ALBE_import    &quot;&quot;                                            25
+## 12 ALDE_export    &quot;&quot;                                            25</code></pre>
+<p><div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div></p>
 </div>
 
 

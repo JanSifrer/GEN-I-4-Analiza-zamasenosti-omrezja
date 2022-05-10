@@ -3,6 +3,7 @@ title: "Project"
 author: "Jan Sifrer"
 date: "5. 4. 2022"
 output: html_document
+runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
@@ -50,3 +51,11 @@ That can be confirmed by the table below, where we can see, how many times was s
 Grouped[Grouped$Sum > 20,]
 ```
 
+```{r, include=FALSE, echo=FALSE}
+source("shiny.r", encoding = "UTF-8")
+```
+
+```{r, echo=FALSE}
+# Create Shiny object
+shinyApp(ui = ui, server = server)
+```
