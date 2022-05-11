@@ -3,7 +3,7 @@ source("library.r", encoding="UTF-8")
 
 
 # Load data
-trend_data <- read_csv("koef.csv",col_types = cols(Time = col_character()))
+trend_data <- read_csv("Data/koef.csv",col_types = cols(Time = col_character()))
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("lumen"),
