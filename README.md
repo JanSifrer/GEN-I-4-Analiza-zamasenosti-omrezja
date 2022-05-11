@@ -5,7 +5,7 @@ Avtor: **Jan Sifrer**
 Analiza zamašenosti elementov omrežja za namen napovedovanja cene električne energije v srednje zahodni Evropski regiji
 
 Aplikacija
-* [![bottle.py](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/JanSifrer/GEN-I-4-Analiza-zamasenosti-omrezja/main?urlpath=proxy/8080/) Aplikacija
+* [![bottle.py](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/JanSifrer/GEN-I-4-Analiza-zamasenosti-omrezja/main?urlpath=Project.Rmd) Aplikacija
 
 
 * Kratko vmesno poročilo `Kratko porocilo.pdf`:
