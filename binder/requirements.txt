@@ -1,2 +1,8 @@
 jupyter-server-proxy
-psycopg2
+
+shiny
+shinythemes
+readr
+dplyr
+stringr
+lme4
