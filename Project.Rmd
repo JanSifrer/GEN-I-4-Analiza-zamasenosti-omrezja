@@ -14,45 +14,55 @@ source("program.R", encoding="UTF-8")
 ```
 
 # Which elements most often clog the power grid? 
-```{r}
-#First, let's see who clogged more than 10 times:
-Grouped_el[Grouped_el$Sum > 10,]
+
+First, let's see who congested more than 10 times:
+```{r, echo=FALSE}
+#First, let's see who congested more than 10 times:
+firs_one <- Grouped_el[Grouped_el$Sum > 10,]
+kable(firs_one)
 ```
 **INTERPRETATIONS:**
 
-* ALBE_export was clogged 51 times in this period
-* The German power grid was clogged for 35 times by [DE-DE] Hoheneck - Pulverdingen weiss [DIR] [DE]
+* ALBE_export was congested 51 times in this period
+* The German power grid was congested for 35 times by [DE-DE] Hoheneck - Pulverdingen weiss [DIR] [DE]
 
-```{r}
-#Second, let's see who clogged more than 2 times, but less than 10 times:
-Grouped_el[Grouped_el$Sum > 2 & Grouped_el$Sum <= 10,]
+
+Second, let's see who congested more than 2 times, but less than 10 times:
+```{r, echo=FALSE}
+#Second, let's see who congested more than 2 times, but less than 10 times:
+second <- Grouped_el[Grouped_el$Sum > 2 & Grouped_el$Sum <= 10,]
+kable(second)
 ```
 
-```{r}
-#And now let see who clogged less than 2 times:
-Grouped_el[Grouped_el$Sum <= 2,]
+And now let see who congested less than 2 times:
+```{r, echo=FALSE}
+#And now let see who congested less than 2 times:
+third <- Grouped_el[Grouped_el$Sum <= 2,]
+kable(third)
 ```
 
 **Conclusion:**
 
-In the first table, we can see, which elements clogged the power grid more than 10 times. We can also see, that all these elements are part of German or Belgium power grid.
+In the first table, we can see, which elements congested the power grid more than 10 times. We can also see, that all these elements are part of German or Belgium power grid.
 
-In the second table, we can see, which elements clogged the power grid more than 2 times, but less than 10 times. We can see that the elements are parts of many different power grids. They are part of Belgium, France, Netherlands, German, and Austria power grids.
+In the second table, we can see, which elements congested the power grid more than 2 times, but less than 10 times. We can see that the elements are parts of many different power grids. They are part of Belgium, France, Netherlands, German, and Austria power grids.
 
-And in the last table, we can see, which elements clogged the power grid at least once, but less than 2 times. But for better transparency let's merge this table by a fact in which country they are. (By the first part of the Name.)
-```{r}
-Grouped_el_2
+And in the last table, we can see, which elements congested the power grid at least once, but less than 2 times. But for better transparency let's merge this table by a fact in which country they are. (By the first part of the Name.)
+```{r, echo=FALSE}
+group <- Grouped_el_2
+kable(group)
 ```
 
-We can see, that although the element's in the Austrian power grid are not in the first table and they are barely in the second (so none of the elements didn't clog the grid more than 10 times, and just one element is in the second table - Westtirol Transformer WTRHU41 [DIR], which clogged the grid 3 times), the Austrian power grid is the most clogged in this observed period.
+We can see, that although the element's in the Austrian power grid are not in the first table and they are barely in the second (so none of the elements didn't clog the grid more than 10 times, and just one element is in the second table - Westtirol Transformer WTRHU41 [DIR], which congested the grid 3 times), the Austrian power grid is the most congested in this observed period.
 
-That can be confirmed by the table below, where we can see, how many times was some power grid clogged. (Let's just see those, who were clogged more than 20 times.)
-```{r}
-Grouped[Grouped$Sum > 20,]
+That can be confirmed by the table below, where we can see, how many times was some power grid congested. (Let's just see those, who were congested more than 20 times.)
+```{r, echo=FALSE}
+grouped2 <- Grouped[Grouped$Sum > 20,]
+kable(grouped2)
 ```
 
 ```{r, include=FALSE, echo=FALSE}
-source("shiny.r", encoding = "UTF-8")
+source("Shiny/shiny.r", encoding = "UTF-8")
 ```
 
 ```{r, echo=FALSE}

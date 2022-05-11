@@ -4,6 +4,7 @@ library(readr)
 library(dplyr)
 library(stringr)
 library(lme4)
+library(knitr)
 
 
 #calculate_coefficients <- function(Joined, time_start, time_end, day_start, day_end){

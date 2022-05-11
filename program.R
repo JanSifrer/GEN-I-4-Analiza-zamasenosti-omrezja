@@ -3,7 +3,7 @@ source("library.r", encoding="UTF-8")
 
 #Import data
 
-X1_ptdf_ram <- read_csv("1_ptdf_ram.csv")
+X1_ptdf_ram <- read_csv("Data/1_ptdf_ram.csv")
 
 #First we have to set our time period: we will observe this data just between 20.9.2021 and 31.10.2021
 X1_ptdf_ram[c("Year", "Time")] <- str_split_fixed(X1_ptdf_ram$TimeLT, " ", 2)
@@ -35,7 +35,7 @@ X1_ptdf_ram <- X1_ptdf_ram[!grepl("CH", X1_ptdf_ram$Name1, fixed = TRUE),]
 #cz <- grepl("CZ", X1_ptdf_ram$Name1, fixed = TRUE)
 X1_ptdf_ram <- X1_ptdf_ram[!grepl("CZ", X1_ptdf_ram$Name1, fixed = TRUE),]
 
-X2_np <- read_csv("2_np.csv")
+X2_np <- read_csv("Data/2_np.csv")
 
 Joined <- left_join(X1_ptdf_ram, X2_np, by="TimeLT")
 
@@ -140,7 +140,7 @@ koef[koef$Name2 == "",]$Name2 = koef[koef$Name2 == "",]$Name1
 #hh2.res <- summary(hh2)$residuals
 #sigma.my <- sigma(hh2)
 #
-write.csv(koef,"koef.csv", row.names = FALSE)
+write.csv(koef,"Data/koef.csv", row.names = FALSE)
 #
 ##true value is: 17.02078
 ##c = 1381.979
