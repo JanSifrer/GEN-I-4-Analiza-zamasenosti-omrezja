@@ -1,8 +1,1 @@
 jupyter-server-proxy
-
-shiny
-shinythemes
-readr
-dplyr
-stringr
-lme4
