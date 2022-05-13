@@ -81,16 +81,20 @@ Joined$Day <- str_replace_all(Joined$Day,"nedelja", "7")
 Joined$Day <- as.numeric(Joined$Day)
 
 
-time_start = "00:00:00"
-time_end = "23:00:00"
-day_start = 1
-day_end = 7
-testna <- Joined[Joined$Time >= time_start,]
-testna <- testna[testna$Time <= time_end,]
-testna <- testna[testna$Day >= day_start,]
-testna <- testna[testna$Day <= day_end,]
+#time_start = "00:00:00"
+#time_end = "23:00:00"
+#day_start = 1
+#day_end = 7
+#testna <- Joined[Joined$Time >= time_start,]
+#testna <- testna[testna$Time <= time_end,]
+#testna <- testna[testna$Day >= day_start,]
+#testna <- testna[testna$Day <= day_end,]
 #testna <- testna[testna$Name1 == "[BE-BE]",]
+testna <- Joined
 testna$what <- testna$RAM - testna$c
+working.data <- Joined
+working.data$RAM.c <- working.data$RAM - working.data$c
+#working.data <- working.data[working.data$what < 700,]
 testna <- testna[testna$what < 700,]
 #koef <- testna[testna$RAM == 2952,]
 koef <- testna
@@ -117,6 +121,118 @@ koef[koef$Name2 == "",]$Name2 = koef[koef$Name2 == "",]$Name1
 #
 #
 #
+
+#### GROUP BY:
+## COUNTRY
+## TIME
+## DAY
+
+#calculate_coefficients <- function(Joined, time_start, time_end, day_start, day_end){
+calculate_coefficients <- function(Joined, my.name, my.time, my.day){
+  my.data.model <- Joined[,c("Time","Day","Name1","Name2","AT", 
+                             "BE", "DE", "FR", "NL", "ALBE", "ALDE", 
+                             "RAM", "c", "congested","AT_NP", "BE_NP", 
+                             "DE_NP", "FR_NP", "NL_NP", "ALBE_NP", "ALDE_NP")]
+  my.data.model$RAM.c <- my.data.model$RAM - my.data.model$c
+  #First find all power grids:
+  Grids <- unique(my.data.model$Name1)
+  #Grids <- c("[AT-AT]")
+  #Time <- unique(my.data.model$Time)
+  PTDF.names <- c("AT", "BE", "DE", "FR", "NL", "ALBE", "ALDE", "RAM", "R", "Probability of congested")
+  
+  #Prepare a table for koeficients:
+  koef <- matrix((nrow=1),ncol=(length(PTDF.names)))
+  rownames(koef) <- my.name
+  colnames(koef) <- PTDF.names
+  
+  #i =6
+  #for (i in 1:length(Grids)){
+    #print(i)
+    #new.data <- my.data.model[my.data.model$Name1 == my.name,]
+    new.data <- my.data.model[my.data.model$Time == my.time,]
+    new.data <- new.data[new.data$Day == my.day,]
+    #if (nrow(new.data)>1){
+    #  test <- lm(RAM.c ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM - 1, new.data)
+    #  # print(summary(test)$r.squared)
+    #  koef[1,"AT"] <- test$coefficient["AT"]
+    #  koef[1,"BE"] <- test$coefficient["BE"]
+    #  koef[1,"DE"] <- test$coefficient["DE"]
+    #  koef[1,"FR"] <- test$coefficient["FR"]
+    #  koef[1,"NL"] <- test$coefficient["NL"]
+    #  koef[1,"ALBE"] <- test$coefficient["ALBE"]
+    #  koef[1,"ALDE"] <- test$coefficient["ALDE"]
+    #  koef[1,"RAM"]<- test$coefficient["RAM"]
+    #  koef[1,"R"] <- summary(test)$r.squared
+    #  koef[1,"Probability of congested"] <- sum(new.data$congested)/dim(new.data)[1]
+    #}
+    #if(nrow(new.data)<=1){
+    #  koef[1,] <- c(0,0,0,0,0,0,0,0,0,999)
+    #}
+    #print(koef)
+  #}
+  #koef[is.na(koef)] <- 0
+  return(new.data)
+}
+library(randomForest)
+library(caTools)
+set.seed(123)
+
+my.predict <- function(Joined, PTDF){
+  my.name <- PTDF["Name1"][[1]]
+  my.time <- PTDF["Time"][[1]]
+  my.day <- PTDF["Day"][[1]]
+  koef <- calculate_coefficients(Joined, my.name, my.time, my.day)[c(-1,-2,-3,-4,-14,-15:-22)]
+  
+  split = sample.split(koef$c, SplitRatio = 0.75)
+  training_set = subset(koef, split == TRUE)
+  test_set = subset(koef, split == FALSE)
+  
+  training_set[-9] = scale(training_set[-9])
+  test_set[-9] = scale(test_set[-9])
+  training_set[is.na(training_set)] <- 0
+  test_set[is.na(test_set)] <- 0
+  classifier = randomForest(x = training_set[-9],
+                            y = training_set$c,
+                            ntree = 1000, random_state = 52)
+  
+  y_pred = predict(classifier, newdata = test_set)
+  cm = table(test_set[, 9], y_pred)
+  cm
+  # rf.fit <- randomForest(c ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM - 1, 
+  #                        data=koef, ntree=1000,
+  #                        keep.forest=FALSE, importance=TRUE)
+  # #my.koef <- koef[1,]
+  #my.prediction <- PTDF["AT"][[1]]*my.koef[[1]] + PTDF["BE"][[1]]*my.koef[[2]] + 
+   # PTDF["DE"][[1]]*my.koef[[3]] + PTDF["FR"][[1]]*my.koef[[4]] + PTDF["NL"][[1]]*my.koef[[5]] +
+    #PTDF["ALBE"][[1]]*my.koef[[6]] + PTDF["ALDE"][[1]]*my.koef[[7]] + PTDF["RAM"][[1]]*my.koef[[8]]
+  #return(c(my.prediction, koef[9],koef[10]))
+}
+
+PTDF <- data.frame("Day" = 1,"Name2" = "Diele - Meeden 380 Black [DIR] [DE]", "Name1" = "[DE-NL]", "Time" = "00:00:00","AT"=0.58860, "BE"=0.25637, "DE"=0.58860, "FR"=0.38150, "NL"=0, "ALBE"=-0.30955, "ALDE"=0, "RAM"=1399)
+##true value is: 17.02078
+##c = 1381.979
+my.predict(Joined,PTDF)
+
+PTDF1 <- data.frame("Day" = 2, "Name2"="Ensdorf - Vigy 2S [OPP] [DE]", "Name1" = "[DE-FR]", "Time" = "02:00:00","AT"=0.02458, "BE"=0.13275, "DE"=-0.01193, "FR"=0.20635, "NL"=0.02558, "ALBE"=0.10677, "ALDE"=-0.06474, "RAM" =1075)
+##true value is: -0.27015
+##c = 1075.2701
+my.predict(Joined,PTDF1)
+
+PTDF2 <- data.frame("Day" = 1, "Name2" = "Pleinting - St. Peter 258 [DIR] [AT]","Name1" = "[DE-AT]", "Time" = "17:00:00","AT"=0.15915, "BE"=0, "DE"=0.15915, "FR"=0.97386, "NL"=0, "ALBE"=0.03069, "ALDE"=0, "RAM" =2952)
+##true value is: 0.14847
+##c = 2951.852
+my.predict(Joined,PTDF2)
+
+PTDF3 <- data.frame("Day" = 7, "Name2"="Buers Transformer 37 [DIR]" ,"Name1" = "[DE-DE]", "Time" = "11:00:00","AT"=-0.41615, "BE"=0, "DE"=0.79506, "FR"=0, "NL"=0, "ALBE"=0.44125, "ALDE"=0, "RAM"=7982)
+##true value is: 3.76918
+##c = 7978.231
+my.predict(Joined,PTDF3)
+
+PTDF4 <- data.frame("Day" = 4,"Name2"="Diele - Meeden 380 Black [DIR] [DE]", "Name1" = "[DE-NL]", "Time" = "22:00:00","AT"=-0.31925, "BE"=0.0645, "DE"=0.90467, "FR"=0.0645, "NL"=0, "ALBE"=-0.26706, "ALDE"=0, "RAM"=7982)
+##true value is: 353.46941
+##c = 7628.531
+my.predict(Joined,PTDF4)
+
 ######IF )# LINE OF THE CODE IS SET TO TOO LITLE; THAN THIS DON'T WORK!
 ##hh2per <- performance::check_predictions(hh2) #good
 ##performance::check_predictions(hh1) #good
