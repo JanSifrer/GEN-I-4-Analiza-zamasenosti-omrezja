@@ -1,6 +1,14 @@
 #First we have to import librarys
 source("library.r", encoding="UTF-8")
 
+library(shiny)
+library(shinythemes)
+library(readr)
+library(dplyr)
+library(stringr)
+library(lme4)
+library(knitr)
+
 #Import data
 
 X1_ptdf_ram <- read_csv("Data/1_ptdf_ram.csv")
