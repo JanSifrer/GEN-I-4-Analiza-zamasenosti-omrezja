@@ -1,14 +1,6 @@
 #First we have to import librarys
 source("library.r", encoding="UTF-8")
 
-library(shiny)
-library(shinythemes)
-library(readr)
-library(dplyr)
-library(stringr)
-library(lme4)
-library(knitr)
-
 #Import data
 
 X1_ptdf_ram <- read_csv("Data/1_ptdf_ram.csv")
@@ -53,17 +45,16 @@ Joined$c <- Joined$ALBE * Joined$ALBE_NP + Joined$ALDE * Joined$ALDE_NP + Joined
 Joined$congested <- Joined$RAM - Joined$c <= 0.5
 
 who_congested <- filter(Joined, congested==TRUE) %>% select(1,2,3,14,15,24)
-head(who_congested,20)
 
-Grouped <- group_by(who_congested, Name1, Name2) %>% summarise(sum(congested))
-colnames(Grouped) <- c("Name of grid", "Name of element", "Sum")
+Grouped <- group_by(who_congested, Name1) %>% summarise(sum(congested))
+colnames(Grouped) <- c("Name of element", "Sum")
 #Order by the sum
 Grouped <- Grouped[order(Grouped$Sum, decreasing = TRUE),]
 
 
-Grouped_el <- group_by(who_congested, Name2)%>% summarise(sum(congested))
-Grouped_el <- Grouped_el[-1,]
-colnames(Grouped_el) <- c("Name of element", "Sum")
+Grouped_el <- group_by(who_congested, Name2, Name1)%>% summarise(sum(congested))
+
+colnames(Grouped_el) <- c("Name of element", "Name of grid" ,"Sum")
 #Order by the sum
 Grouped_el <- Grouped_el[order(Grouped_el$Sum, decreasing = TRUE),]
 
@@ -78,14 +69,15 @@ Joined$congested <- as.numeric(Joined$congested)
 
 #Split the data by days:
 
+Sys.setlocale("LC_TIME", "C")
 Joined$Day <- weekdays(Joined$Year)
-Joined$Day <- str_replace_all(Joined$Day,"ponedeljek", "1")
-Joined$Day <- str_replace_all(Joined$Day,"torek", "2")
-Joined$Day <- str_replace_all(Joined$Day,"sreda", "3")
-Joined$Day <- str_replace_all(Joined$Day,"četrtek", "4")
-Joined$Day <- str_replace_all(Joined$Day,"petek", "5")
-Joined$Day <- str_replace_all(Joined$Day,"sobota", "6")
-Joined$Day <- str_replace_all(Joined$Day,"nedelja", "7")
+Joined$Day <- str_replace_all(Joined$Day,"Monday", "1")
+Joined$Day <- str_replace_all(Joined$Day,"Tuesday", "2")
+Joined$Day <- str_replace_all(Joined$Day,"Wednesday", "3")
+Joined$Day <- str_replace_all(Joined$Day,"Thursday", "4")
+Joined$Day <- str_replace_all(Joined$Day,"Friday", "5")
+Joined$Day <- str_replace_all(Joined$Day,"Saturday", "6")
+Joined$Day <- str_replace_all(Joined$Day,"Sunday", "7")
 Joined$Day <- as.numeric(Joined$Day)
 
 
@@ -99,11 +91,11 @@ Joined$Day <- as.numeric(Joined$Day)
 #testna <- testna[testna$Day <= day_end,]
 #testna <- testna[testna$Name1 == "[BE-BE]",]
 testna <- Joined
-testna$what <- testna$RAM - testna$c
+testna$difference <- testna$RAM - testna$c
 working.data <- Joined
 working.data$RAM.c <- working.data$RAM - working.data$c
 #working.data <- working.data[working.data$what < 700,]
-testna <- testna[testna$what < 700,]
+testna <- testna[testna$difference < 700,]
 #koef <- testna[testna$RAM == 2952,]
 koef <- testna
 #koef <- calculate_coefficients(Joined,time_start,time_end,day_start,day_end)
@@ -174,8 +166,28 @@ koef[koef$Name2 == "",]$Name2 = koef[koef$Name2 == "",]$Name1
 #
 #hh2.res <- summary(hh2)$residuals
 #sigma.my <- sigma(hh2)
-#
-write.csv(koef,"Data/koef.csv", row.names = FALSE)
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###################write.csv(koef,"Data/koef.csv", row.names = FALSE)
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+
 #
 ##true value is: 17.02078
 ##c = 1381.979

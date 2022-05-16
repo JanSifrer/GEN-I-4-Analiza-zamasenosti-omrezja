@@ -6,61 +6,6 @@ output: html_document
 runtime: shiny
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-```{r, include=FALSE, echo=FALSE}
-#source("program.R", encoding="UTF-8")
-```
-
-# Which elements most often clog the power grid? 
-
-First, let's see who congested more than 10 times:
-```{r, echo=FALSE}
-#First, let's see who congested more than 10 times:
-#firs_one <- Grouped_el[Grouped_el$Sum > 10,]
-#kable(firs_one)
-```
-**INTERPRETATIONS:**
-
-* ALBE_export was congested 51 times in this period
-* The German power grid was congested for 35 times by [DE-DE] Hoheneck - Pulverdingen weiss [DIR] [DE]
-
-
-Second, let's see who congested more than 2 times, but less than 10 times:
-```{r, echo=FALSE}
-#Second, let's see who congested more than 2 times, but less than 10 times:
-#second <- Grouped_el[Grouped_el$Sum > 2 & Grouped_el$Sum <= 10,]
-#kable(second)
-```
-
-And now let see who congested less than 2 times:
-```{r, echo=FALSE}
-#And now let see who congested less than 2 times:
-#third <- Grouped_el[Grouped_el$Sum <= 2,]
-#kable(third)
-```
-
-**Conclusion:**
-
-In the first table, we can see, which elements congested the power grid more than 10 times. We can also see, that all these elements are part of German or Belgium power grid.
-
-In the second table, we can see, which elements congested the power grid more than 2 times, but less than 10 times. We can see that the elements are parts of many different power grids. They are part of Belgium, France, Netherlands, German, and Austria power grids.
-
-And in the last table, we can see, which elements congested the power grid at least once, but less than 2 times. But for better transparency let's merge this table by a fact in which country they are. (By the first part of the Name.)
-```{r, echo=FALSE}
-#group <- Grouped_el_2
-#kable(group)
-```
-
-We can see, that although the element's in the Austrian power grid are not in the first table and they are barely in the second (so none of the elements didn't clog the grid more than 10 times, and just one element is in the second table - Westtirol Transformer WTRHU41 [DIR], which congested the grid 3 times), the Austrian power grid is the most congested in this observed period.
-
-That can be confirmed by the table below, where we can see, how many times was some power grid congested. (Let's just see those, who were congested more than 20 times.)
-```{r, echo=FALSE}
-#grouped2 <- Grouped[Grouped$Sum > 20,]
-#kable(grouped2)
-```
-
 ```{r, include=FALSE, echo=FALSE}
 # source("Shiny/shiny.r", encoding = "UTF-8")
 
@@ -73,12 +18,14 @@ library(dplyr)
 library(stringr)
 library(lme4)
 library(knitr)
+library(DT)
 
 # Load data
 trend_data <- read_csv("koef.csv",col_types = cols(Time = col_character()))
+#trend_data <- read_csv(url("https://raw.githubusercontent.com/JanSifrer/GEN-I-4-Analiza-zamasenosti-omrezja/main/koef.csv"),col_types = cols(Time = col_character()))
 
 # Define UI
-ui <- fluidPage(theme = shinytheme("lumen"),
+ui <- fluidPage(theme = shinytheme("united"),
                 titlePanel("Congested grids"),
                 sidebarLayout(
                   sidebarPanel(
@@ -125,10 +72,9 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                   
                   # Output: Description, lineplot, and reference
                   mainPanel(
-                    tableOutput(outputId = "table"),
-                    plotOutput(outputId = "lineplot", height = "300px")
-                    # textOutput(outputId = "desc"),
-                    # tags$a(href = "https://www.google.com/finance/domestic_trends", "Source: Google Domestic Trends", target = "_blank")
+                    tableOutput("table"),
+                    plotOutput(outputId = "lineplot", height = "300px"),
+                    plotOutput(outputId = "lineplot1", height = "300px")
                   )
                 )
 )
@@ -140,41 +86,39 @@ server <- function(input, output) {
   hh2 <- lmer(c ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM + (1|Name2/Day) + (1|Name2/Time), data = trend_data)
   
   output$lineplot <- renderPlot({
-    # plot(1,1, type='l')
     trend_data1 <- trend_data[trend_data$Name2==input$name2,]
     trend_data1 <- trend_data1[trend_data1$Time==input$time,]
-    plot(trend_data1$c, type='l')
-    #color = "#434343"
-    #par(mar = c(4, 4, 1, 1))
-    # plot(selected_trends()$c, type = "l",
-    #      xlab = "Date", ylab = "Trend index", col = color, fg = color, col.lab = color, col.axis = color)
-    # Display only if smoother is checked
-    #if(input$smoother){
-    # print(1+1)
-    #}
+    #print(trend_data1$c)
+    hist(trend_data1$what, breaks=60)
   })
   
+  output$lineplot1 <- renderPlot({
+    trend_data1 <- trend_data[trend_data$Name2==input$name2,]
+    trend_data1 <- trend_data1[trend_data1$Time==input$time,]
+    #print(trend_data1$c)
+    plot(density(trend_data1$what))
+  })
+
+  
   # Pull in description of trend
-  output$table <- renderTable({
+  output$table <-  renderTable({
+    trend_data1 <- trend_data[trend_data$Name2==input$name2,]
+    trend_data1 <- trend_data1[trend_data1$Time==input$time,]
     
     PTDF <- data.frame("Day"=input$day,"Name2"=input$name2, "Time"=input$time, "AT"=input$AT, "BE"=input$BE, "DE"=input$DE, "FR"=input$FR, "NL"=input$NL, "ALBE"=input$ALBE, "ALDE"=input$ALDE, "RAM"=input$RAM)
-    
+    print(trend_data1[c(11,12,13,15,26)])
     out <- tryCatch(
       {
         v = predict(hh2,PTDF)
       },
       error=function(cond) {
         return(0)
-      }#,
-      # finally = {
-      #   v
-      # }
+      }
     )
     interval <- c(out - 1.96*sigma(hh2), out + 1.96*sigma(hh2))
     if (out == 0){hh = data.frame("Change some parameters!" = out)}
     else{
-      hh = data.frame("low boundary" = interval[1], "value" = out, "High boundary" = interval[2], "RAM" = input$RAM, "RAM - Value" = input$RAM - out)}
-    print(hh)
+      hh = data.frame("low boundary" = interval[1], "value" = out, "High boundary" = interval[2], "RAM" = input$RAM, "Difference" = input$RAM - out, "Probability" = (sum(trend_data1$congested))/dim(trend_data1)[1])}
   })
 }
 ```
@@ -182,4 +126,5 @@ server <- function(input, output) {
 ```{r, echo=FALSE}
 # Create Shiny object
 shinyApp(ui = ui, server = server)
+#1+1
 ```
