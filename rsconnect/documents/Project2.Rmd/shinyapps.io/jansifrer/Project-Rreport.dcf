@@ -1,0 +1,13 @@
+name: Project-Rreport
+title: Project-Rreport
+username:
+account: jansifrer
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6313459
+bundleId: 5912638
+url: https://jansifrer.shinyapps.io/Project-Rreport/
+when: 1652731200.13311
+lastSyncTime: 1652731200.13311
+asMultiple: FALSE
+asStatic: FALSE

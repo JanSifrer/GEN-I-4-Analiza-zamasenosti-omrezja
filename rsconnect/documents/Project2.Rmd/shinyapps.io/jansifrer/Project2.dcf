@@ -1,0 +1,13 @@
+name: Project2
+title: Project2
+username:
+account: jansifrer
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6306848
+bundleId: 5909878
+url: https://jansifrer.shinyapps.io/Project2/
+when: 1652685365.01195
+lastSyncTime: 1652685365.01195
+asMultiple: FALSE
+asStatic: FALSE
