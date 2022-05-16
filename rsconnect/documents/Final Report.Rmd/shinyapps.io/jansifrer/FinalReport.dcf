@@ -1,0 +1,13 @@
+name: FinalReport
+title: FinalReport
+username:
+account: jansifrer
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6313696
+bundleId: 5912815
+url: https://jansifrer.shinyapps.io/FinalReport/
+when: 1652734120.94667
+lastSyncTime: 1652734120.94667
+asMultiple: FALSE
+asStatic: FALSE

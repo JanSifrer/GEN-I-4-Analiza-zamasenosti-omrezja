@@ -1,0 +1,189 @@
+---
+title: "Project report"
+author: "Jan Sifrer"
+date: "16. 5. 2022"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r, include=FALSE, echo=FALSE}
+library(readr)
+library(dplyr)
+library(stringr)
+library(knitr)
+library(DT)
+
+Grouped <- read_csv("Data/Grouped.csv")
+Grouped_el <- read.csv("Data/Grouped_el.csv")
+```
+
+# Which elements most often congested the power grid? 
+
+First, let's see who congested more than 10 times:
+```{r, echo=FALSE}
+#First, let's see who congested more than 10 times:
+firs_one <- Grouped_el[Grouped_el$Sum > 10,][c(2,1,3)]
+renderDataTable(firs_one)
+```
+**INTERPRETATIONS:**
+
+* Westtirol Transformer WTRHU41 [DIR] was congested 136 times in this period.
+* The German-Austrian power grid was congested for 281 times by Pleinting - St. Peter 258 [DIR] [AT].
+
+
+Second, let's see who congested more than 2 times, but less than 10 times:
+```{r, echo=FALSE}
+#Second, let's see who congested more than 2 times, but less than 10 times:
+second <- Grouped_el[Grouped_el$Sum > 2 & Grouped_el$Sum <= 10,][c(2,1,3)]
+renderDataTable(second)
+```
+
+And now let see who congested less than 2 times:
+```{r, echo=FALSE}
+#And now let see who congested less than 2 times:
+third <- Grouped_el[Grouped_el$Sum <= 2,][c(2,1,3)]
+renderDataTable(third)
+```
+
+**Conclusion:**
+
+In the first table, we can see, which elements congested the power grid more than 10 times. We can also see, that all these elements are part of Austrian, German, Netherlands, or Belgium power grid.
+
+The second table shows which elements congested the power grid more than 2 times, but less than 10 times. They are part of Belgium, France, Netherlands, German, and Austria power grids.
+
+And in the last table, we can see, which elements congested the power grid at least once, but less than 2 times. 
+
+The table below shows us, how many times was some power grid congested. (Let's see those, who were congested more than 20 times.)
+We can see, that most time the German-Austrian power grid was congested. And the next problematic power grid was the German power grid.
+```{r, echo=FALSE}
+grouped2 <- Grouped[Grouped$Sum > 20,]
+renderDataTable(grouped2)
+```
+
+The application below, we can use for predictions. On the left side, we can choose the values for parameters, and on the right side, we get a table, which says what is approximated c-value and then is given a prediction interval. In the penultimate column, we calculate the difference, if this difference is smaller than 0.5 then the power grid would be congested. In the last column, we can see the probability that chosen power grid at a chosen time is congested.
+
+```{r, include=FALSE, echo=FALSE}
+# source("Shiny/shiny.r", encoding = "UTF-8")
+
+#source("library.r", encoding="UTF-8")
+
+library(shiny)
+library(shinythemes)
+library(readr)
+library(dplyr)
+library(stringr)
+library(lme4)
+library(knitr)
+library(DT)
+
+# Load data
+trend_data <- read_csv("Data/koef.csv",col_types = cols(Time = col_character()))
+#trend_data <- read_csv(url("https://raw.githubusercontent.com/JanSifrer/GEN-I-4-Analiza-zamasenosti-omrezja/main/koef.csv"),col_types = cols(Time = col_character()))
+
+# Define UI
+ui <- fluidPage(theme = shinytheme("united"),
+                titlePanel("Congested grids"),
+                sidebarLayout(
+                  sidebarPanel(
+                    
+                    # Select type of trend to plot
+                    selectInput(inputId = "name2", label = strong("Name of Grid"),
+                                choices = unique(trend_data$Name2)[order(unique(trend_data$Name2))],
+                                selected = "Diele - Meeden 380 Black [DIR] [DE]"),
+                    
+                    selectInput(inputId = "time", label = strong("Hour"),
+                                choices = unique(trend_data$Time),
+                                selected = "00:00:00"),
+                    
+                    selectInput(inputId = "day", label = strong("Day of the week"),
+                                choices = c(1:7),
+                                selected = 1),
+                    
+                    numericInput(inputId = "AT", label = strong("PTDF for AT"),
+                                 value = 0.58860, min = -1, max = 1, step = 0.00001),
+                    
+                    numericInput(inputId = "BE", label = strong("PTDF for BE"),
+                                 value = 0.25637, min = -1, max = 1, step = 0.00001),
+                    
+                    numericInput(inputId = "DE", label = strong("PTDF for DE"),
+                                 value = 0.58860, min = -1, max = 1, step = 0.00001),
+                    
+                    numericInput(inputId = "FR", label = strong("PTDF for FR"),
+                                 value = 0.38150, min = -1, max = 1, step = 0.00001),
+                    
+                    numericInput(inputId = "NL", label = strong("PTDF for NL"),
+                                 value = 0, min = -1, max = 1, step = 0.00001),
+                    
+                    numericInput(inputId = "ALBE", label = strong("PTDF for ALBE"),
+                                 value = -0.30955, min = -1, max = 1, step = 0.00001),
+                    
+                    numericInput(inputId = "ALDE", label = strong("PTDF for ALDE"),
+                                 value = 0, min = -1, max = 1, step = 0.00001),
+                    
+                    numericInput(inputId = "RAM", label = strong("RAM"),
+                                 value = 1399, min = 0, max = 99999, step = 0.01),
+                    
+                    
+                  ),
+                  
+                  # Output: Description, lineplot, and reference
+                  mainPanel(
+                    tableOutput("table"),
+                    plotOutput(outputId = "lineplot", height = "300px"),
+                    plotOutput(outputId = "lineplot1", height = "300px")
+                  )
+                )
+)
+
+# Define server function
+server <- function(input, output) {
+  
+  # Create scatterplot object the plotOutput function is expecting
+  hh2 <- lmer(c ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM + (1|Name2/Day) + (1|Name2/Time), data = trend_data)
+  
+  output$lineplot <- renderPlot({
+    trend_data1 <- trend_data[trend_data$Name2==input$name2,]
+    trend_data1 <- trend_data1[trend_data1$Time==input$time,]
+    #print(trend_data1$c)
+    hist(trend_data1$difference, breaks=60, main="Histogram of calculation Diference = RAM-c", xlab="Difference")
+  })
+  
+  output$lineplot1 <- renderPlot({
+    trend_data1 <- trend_data[trend_data$Name2==input$name2,]
+    trend_data1 <- trend_data1[trend_data1$Time==input$time,]
+    #print(trend_data1$c)
+    plot(density(trend_data1$difference), main="Density of calculation Diference = RAM-c", xlab="Difference")
+  })
+
+  
+  # Pull in description of trend
+  output$table <-  renderTable({
+    trend_data1 <- trend_data[trend_data$Name2==input$name2,]
+    trend_data1 <- trend_data1[trend_data1$Time==input$time,]
+    
+    PTDF <- data.frame("Day"=input$day,"Name2"=input$name2, "Time"=input$time, "AT"=input$AT, "BE"=input$BE, "DE"=input$DE, "FR"=input$FR, "NL"=input$NL, "ALBE"=input$ALBE, "ALDE"=input$ALDE, "RAM"=input$RAM)
+    print(trend_data1[c(11,12,13,15,26)])
+    out <- tryCatch(
+      {
+        v = predict(hh2,PTDF)
+      },
+      error=function(cond) {
+        return(0)
+      }
+    )
+    interval <- c(out - 1.96*sigma(hh2), out + 1.96*sigma(hh2))
+    if (out == 0){hh = data.frame("Change some parameters!" = out)}
+    else{
+      hh = data.frame("low boundary" = interval[1], "c" = out, "High boundary" = interval[2], "RAM" = input$RAM, "Difference" = input$RAM - out, "Probability" = (sum(trend_data1$congested))/dim(trend_data1)[1])}
+  })
+}
+```
+
+```{r, echo=FALSE}
+# Create Shiny object
+shinyApp(ui = ui, server = server)
+#1+1
+```
