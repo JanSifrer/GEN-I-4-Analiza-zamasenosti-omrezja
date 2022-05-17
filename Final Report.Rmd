@@ -56,14 +56,21 @@ The second table shows which elements congested the power grid more than 2 times
 
 And in the last table, we can see, which elements congested the power grid at least once, but less than 2 times. 
 
-The table below shows us, how many times was some power grid congested. (Let's see those, who were congested more than 20 times.)
-We can see, that most time the German-Austrian power grid was congested. And the next problematic power grid was the German power grid.
+# Which power grid was congested most often? 
+
+The table below shows us, how many times was some power grid congested. (Let's see those, who were congested more than 20 times).
+We see that the German-Austrian power grid was congested the most. And the next problematic power grid was the German power grid.
 ```{r, echo=FALSE}
 grouped2 <- Grouped[Grouped$Sum > 20,]
 renderDataTable(grouped2)
 ```
 
-The application below, we can use for predictions. On the left side, we can choose the values for parameters, and on the right side, we get a table, which says what is approximated c-value and then is given a prediction interval. In the penultimate column, we calculate the difference, if this difference is smaller than 0.5 then the power grid would be congested. In the last column, we can see the probability that chosen power grid at a chosen time is congested.
+# Model 
+
+The application below, we can use for predictions. 
+On the left side, we can choose the values for parameters, and on the right side, we get a table, which says what is approximated c-value and then is given a prediction interval. In the last column, we calculate the difference, if this difference is too small then the power grid would be congested. In the next row, we can see the probability that chosen power grid at a chosen time is congested.
+
+If there are no graphs, change some parameters.
 
 ```{r, include=FALSE, echo=FALSE}
 # source("Shiny/shiny.r", encoding = "UTF-8")
@@ -81,20 +88,18 @@ library(DT)
 
 # Load data
 trend_data <- read_csv("Data/koef.csv",col_types = cols(Time = col_character()))
-#trend_data <- read_csv(url("https://raw.githubusercontent.com/JanSifrer/GEN-I-4-Analiza-zamasenosti-omrezja/main/koef.csv"),col_types = cols(Time = col_character()))
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("united"),
-                titlePanel("Congested grids"),
                 sidebarLayout(
                   sidebarPanel(
                     
                     # Select type of trend to plot
-                    selectInput(inputId = "name2", label = strong("Name of Grid"),
+                    selectInput(inputId = "name2", label = strong("Name of the Power Grid"),
                                 choices = unique(trend_data$Name2)[order(unique(trend_data$Name2))],
                                 selected = "Diele - Meeden 380 Black [DIR] [DE]"),
                     
-                    selectInput(inputId = "time", label = strong("Hour"),
+                    selectInput(inputId = "time", label = strong("Time"),
                                 choices = unique(trend_data$Time),
                                 selected = "00:00:00"),
                     
@@ -132,6 +137,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                   # Output: Description, lineplot, and reference
                   mainPanel(
                     tableOutput("table"),
+                    tableOutput("prob"),
                     plotOutput(outputId = "lineplot", height = "300px"),
                     plotOutput(outputId = "lineplot1", height = "300px")
                   )
@@ -147,25 +153,51 @@ server <- function(input, output) {
   output$lineplot <- renderPlot({
     trend_data1 <- trend_data[trend_data$Name2==input$name2,]
     trend_data1 <- trend_data1[trend_data1$Time==input$time,]
+    trend_data1 <- trend_data1[trend_data1$Day==input$day,]
     #print(trend_data1$c)
-    hist(trend_data1$difference, breaks=60, main="Histogram of calculation Diference = RAM-c", xlab="Difference")
+        out <- tryCatch(
+      {
+        hist(trend_data1$difference, breaks=60, main="Histogram of Diference = RAM-c", xlab="Difference")
+      },
+      error=function(cond) {
+        return("For this parameters I can not plot a histogram.")
+      }
+    )
+    out
   })
   
   output$lineplot1 <- renderPlot({
     trend_data1 <- trend_data[trend_data$Name2==input$name2,]
     trend_data1 <- trend_data1[trend_data1$Time==input$time,]
+    trend_data1 <- trend_data1[trend_data1$Day==input$day,]
     #print(trend_data1$c)
-    plot(density(trend_data1$difference), main="Density of calculation Diference = RAM-c", xlab="Difference")
+    out <- tryCatch(
+      {
+        plot(density(trend_data1$difference), main="Density of Diference = RAM-c", xlab="Difference")
+      },
+      error=function(cond) {
+        return("For this parameters I can not plot a density function.")
+      }
+    )
+    out
   })
-
   
+    output$prob <-  renderTable({
+        trend_data1 <- trend_data[trend_data$Name2==input$name2,]
+        trend_data1 <- trend_data1[trend_data1$Time==input$time,]
+        trend_data1 <- trend_data1[trend_data1$Day==input$day,]
+        prob <- (sum(trend_data1$congested))/dim(trend_data1)[1]
+        hh = data.frame("Probability" = prob)
+  }, digits = 5)
+
   # Pull in description of trend
   output$table <-  renderTable({
     trend_data1 <- trend_data[trend_data$Name2==input$name2,]
     trend_data1 <- trend_data1[trend_data1$Time==input$time,]
+    trend_data1 <- trend_data1[trend_data1$Day==input$day,]
     
     PTDF <- data.frame("Day"=input$day,"Name2"=input$name2, "Time"=input$time, "AT"=input$AT, "BE"=input$BE, "DE"=input$DE, "FR"=input$FR, "NL"=input$NL, "ALBE"=input$ALBE, "ALDE"=input$ALDE, "RAM"=input$RAM)
-    print(trend_data1[c(11,12,13,15,26)])
+    #print(trend_data1[c(11,12,13,15,26)])
     out <- tryCatch(
       {
         v = predict(hh2,PTDF)
@@ -175,9 +207,9 @@ server <- function(input, output) {
       }
     )
     interval <- c(out - 1.96*sigma(hh2), out + 1.96*sigma(hh2))
-    if (out == 0){hh = data.frame("Change some parameters!" = out)}
+    if (out == 0){hh = data.frame("ERROR" = "Change some parameters!")}
     else{
-      hh = data.frame("low boundary" = interval[1], "c" = out, "High boundary" = interval[2], "RAM" = input$RAM, "Difference" = input$RAM - out, "Probability" = (sum(trend_data1$congested))/dim(trend_data1)[1])}
+      hh = data.frame("Low boundary" = interval[1], "c" = out, "High boundary" = interval[2], "RAM" = input$RAM, "Difference" = input$RAM - out)}
   })
 }
 ```
