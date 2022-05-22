@@ -58,10 +58,11 @@ And in the last table, we can see, which elements congested the power grid at le
 
 # Which power grid was congested most often? 
 
-The table below shows us, how many times was some power grid congested. (Let's see those, who were congested more than 20 times).
+The table below shows us, how many times was some power grid congested.
+
 We see that the German-Austrian power grid was congested the most. And the next problematic power grid was the German power grid.
 ```{r, echo=FALSE}
-grouped2 <- Grouped[Grouped$Sum > 20,]
+grouped2 <- Grouped[Grouped$Sum > 0,]
 renderDataTable(grouped2)
 ```
 
