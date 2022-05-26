@@ -90,14 +90,14 @@ library(DT)
 # Load data
 trend_data <- read_csv("Data/koef.csv",col_types = cols(Time = col_character()))
 
+trend_data2 <- trend_data[trend_data$Time == "00:00:00" & trend_data$Day ==  1,]
 # Define UI
 ui <- fluidPage(theme = shinytheme("united"),
                 sidebarLayout(
                   sidebarPanel(
-                    
                     # Select type of trend to plot
                     selectInput(inputId = "name2", label = strong("Name of the Power Grid"),
-                                choices = unique(trend_data$Name2)[order(unique(trend_data$Name2))],
+                                choices = unique(trend_data2$Name2)[order(unique(trend_data2$Name2))],
                                 selected = "Diele - Meeden 380 Black [DIR] [DE]"),
                     
                     selectInput(inputId = "time", label = strong("Time"),
@@ -146,10 +146,20 @@ ui <- fluidPage(theme = shinytheme("united"),
 )
 
 # Define server function
-server <- function(input, output) {
+server <- function(input, output, session) {
   
   # Create scatterplot object the plotOutput function is expecting
   hh2 <- lmer(c ~ AT + BE + DE + FR + NL + ALBE + ALDE + RAM + (1|Name2/Day) + (1|Name2/Time), data = trend_data)
+  
+  observe({
+    trend_data3 <- trend_data[trend_data$Time==input$time & trend_data$Day==input$day,]
+    val <- input$name2
+    # Control the value, min, max, and step.
+    # Step size is 2 when input value is even; 1 when value is odd.
+    updateSelectInput(session, "name2", choices = unique(trend_data3$Name2)[order(unique(trend_data3$Name2))], selected = input$name2)
+  })
+  
+  trend_data2 <- reactive({trend_data[trend_data$Time == input$time & trend_data$Day ==  input$day,]})
   
   output$lineplot <- renderPlot({
     trend_data1 <- trend_data[trend_data$Name2==input$name2,]
